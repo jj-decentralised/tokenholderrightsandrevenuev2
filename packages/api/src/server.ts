@@ -163,27 +163,38 @@ async function start(): Promise<void> {
     if (config.nodeEnv === "production") {
       startScheduler();
 
-      // Run initial data sync if database is nearly empty
+      // Run full data pipeline on startup to ensure data is fresh
       setTimeout(async () => {
         try {
-          const result = await query("SELECT COUNT(*) as count FROM protocol");
-          const protocolCount = Number(result.rows[0].count);
+          const feeCheck = await query("SELECT COUNT(*) as count FROM protocol WHERE has_fee_data = true");
+          const feeProtocols = Number(feeCheck.rows[0].count);
+          const revCheck = await query("SELECT COUNT(*) as count FROM revenue_daily").catch(() => ({ rows: [{ count: 0 }] }));
+          const revRows = Number(revCheck.rows[0].count);
 
-          if (protocolCount < 50) {
-            console.log(`[startup] Only ${protocolCount} protocols in DB — running initial sync...`);
-            const { syncFeeProtocols, syncTokenUniverse } = await import("./services/ingestion/sync-universe.js");
-            await syncFeeProtocols();
-            await syncTokenUniverse(10);
-            console.log("[startup] Initial sync complete — starting revenue ingestion...");
+          console.log(`[startup] Status: ${feeProtocols} fee protocols, ${revRows} revenue rows`);
 
-            const { ingestAllRevenue } = await import("./services/ingestion/revenue-ingestion.js");
-            await ingestAllRevenue();
-            console.log("[startup] Initial revenue ingestion complete");
-          } else {
-            console.log(`[startup] ${protocolCount} protocols already in DB, skipping initial sync`);
-          }
+          // Step 1: Always sync fee protocols to ensure has_fee_data is set
+          console.log("[startup] Step 1/4: Syncing fee protocols...");
+          const { syncFeeProtocols, syncTokenUniverse } = await import("./services/ingestion/sync-universe.js");
+          await syncFeeProtocols();
+
+          // Step 2: Sync token universe (top 2500 by market cap)
+          console.log("[startup] Step 2/4: Syncing token universe...");
+          await syncTokenUniverse(10);
+
+          // Step 3: Revenue ingestion (only fee protocols, parallel)
+          console.log("[startup] Step 3/4: Running revenue ingestion...");
+          const { ingestAllRevenue } = await import("./services/ingestion/revenue-ingestion.js");
+          await ingestAllRevenue();
+
+          // Step 4: Market data
+          console.log("[startup] Step 4/4: Running market data ingestion...");
+          const { ingestAllMarketData } = await import("./services/ingestion/market-ingestion.js");
+          await ingestAllMarketData();
+
+          console.log("[startup] Full data pipeline complete!");
         } catch (error) {
-          console.error("[startup] Initial sync failed:", error);
+          console.error("[startup] Data pipeline failed:", error);
         }
       }, 5000);
     }
