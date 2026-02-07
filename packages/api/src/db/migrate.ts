@@ -23,7 +23,7 @@ async function getAppliedMigrations(): Promise<string[]> {
   return result.rows.map((r) => r.name);
 }
 
-async function migrate(): Promise<void> {
+export async function runMigrations(): Promise<void> {
   await ensureMigrationTable();
   const applied = await getAppliedMigrations();
 
@@ -32,9 +32,9 @@ async function migrate(): Promise<void> {
     .filter((f) => f.endsWith(".sql"))
     .sort();
 
+  let newMigrations = 0;
   for (const file of files) {
     if (applied.includes(file)) {
-      console.log(`  skip: ${file} (already applied)`);
       continue;
     }
 
@@ -48,21 +48,31 @@ async function migrate(): Promise<void> {
       await client.query(upSection);
       await client.query("INSERT INTO _migrations (name) VALUES ($1)", [file]);
       await client.query("COMMIT");
-      console.log(`  applied: ${file}`);
+      console.log(`  [migrate] applied: ${file}`);
+      newMigrations++;
     } catch (error) {
       await client.query("ROLLBACK");
-      console.error(`  FAILED: ${file}`, error);
+      console.error(`  [migrate] FAILED: ${file}`, error);
       throw error;
     } finally {
       client.release();
     }
   }
 
-  console.log("Migrations complete.");
-  process.exit(0);
+  if (newMigrations > 0) {
+    console.log(`[migrate] ${newMigrations} migrations applied.`);
+  } else {
+    console.log("[migrate] Database is up to date.");
+  }
 }
 
-migrate().catch((err) => {
-  console.error("Migration failed:", err);
-  process.exit(1);
-});
+// CLI entrypoint
+const isMainModule = process.argv[1]?.includes("migrate") && !process.argv[1]?.includes("migrate-down");
+if (isMainModule) {
+  runMigrations()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error("Migration failed:", err);
+      process.exit(1);
+    });
+}

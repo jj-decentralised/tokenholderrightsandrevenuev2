@@ -31,52 +31,60 @@ router.get("/overview", validate(dashboardQuerySchema), async (req, res, next) =
       WHERE t.revenue_mechanism_status = 'active'`
     );
 
-    // Top protocols by revenue
+    // Top protocols by revenue — simplified query that works even with empty tables
     const topProtocols = await query(
       `SELECT
         p.id, p.name, p.slug, p.logo_url, p.primary_category, p.tokenization_type,
         t.symbol as token_symbol,
-        COALESCE(SUM(r.daily_fees_usd), 0) as fees_period,
-        COALESCE(SUM(r.daily_revenue_usd), 0) as revenue_period,
-        COALESCE(SUM(r.daily_holders_revenue_usd), 0) as holder_revenue_period,
+        COALESCE(rev.period_fees, 0) as period_fees,
+        COALESCE(rev.period_revenue, 0) as period_revenue,
+        COALESCE(rev.period_holder_revenue, 0) as period_holder_revenue,
         tm.price_usd, tm.market_cap_usd, tm.fdv_usd,
-        cm.real_pe_ratio, cm.revenue_yield, cm.holder_revenue_pct,
+        cm.real_pe_ratio,
+        cm.revenue_yield as revenue_yield_pct,
         cm.productive_token_score,
-        hs.total_holders as holders_count,
+        hs.total_holders as holder_count,
         cm.holder_growth_30d
       FROM protocol p
-      LEFT JOIN token t ON t.protocol_id = p.id AND t.has_revenue_rights = true
-      LEFT JOIN revenue_daily r ON r.protocol_id = p.id AND r.date >= $1 AND r.date <= $2
+      LEFT JOIN token t ON t.protocol_id = p.id
       LEFT JOIN LATERAL (
-        SELECT * FROM token_market_daily
+        SELECT
+          SUM(daily_fees_usd) as period_fees,
+          SUM(daily_revenue_usd) as period_revenue,
+          SUM(daily_holders_revenue_usd) as period_holder_revenue
+        FROM revenue_daily
+        WHERE protocol_id = p.id AND date >= $1 AND date <= $2
+      ) rev ON true
+      LEFT JOIN LATERAL (
+        SELECT price_usd, market_cap_usd, fdv_usd
+        FROM token_market_daily
         WHERE token_id = t.id
         ORDER BY date DESC LIMIT 1
-      ) tm ON true
+      ) tm ON t.id IS NOT NULL
       LEFT JOIN LATERAL (
-        SELECT * FROM computed_metrics
+        SELECT real_pe_ratio, revenue_yield, productive_token_score, holder_growth_30d
+        FROM computed_metrics
         WHERE protocol_id = p.id
         ORDER BY date DESC LIMIT 1
       ) cm ON true
       LEFT JOIN LATERAL (
-        SELECT * FROM holder_snapshot
+        SELECT total_holders
+        FROM holder_snapshot
         WHERE token_id = t.id
         ORDER BY snapshot_date DESC LIMIT 1
-      ) hs ON true
+      ) hs ON t.id IS NOT NULL
       WHERE p.status = 'active'
-      GROUP BY p.id, p.name, p.slug, p.logo_url, p.primary_category, p.tokenization_type,
-               t.symbol, tm.price_usd, tm.market_cap_usd, tm.fdv_usd,
-               cm.real_pe_ratio, cm.revenue_yield, cm.holder_revenue_pct,
-               cm.productive_token_score, hs.total_holders, cm.holder_growth_30d
-      ORDER BY revenue_period DESC
+      ORDER BY COALESCE(rev.period_fees, 0) DESC
       LIMIT 50`,
       [start, end]
     );
 
-    // Top movers - highest yield
+    // Top movers - highest yield (safe with empty computed_metrics)
     const highestYield = await query(
-      `SELECT p.id, p.name, p.slug, p.logo_url, cm.revenue_yield, cm.productive_token_score
+      `SELECT p.id, p.name, p.slug, t.symbol as token_symbol, cm.revenue_yield as revenue_yield_pct
       FROM computed_metrics cm
       JOIN protocol p ON p.id = cm.protocol_id
+      LEFT JOIN token t ON t.protocol_id = p.id
       WHERE cm.date = (SELECT MAX(date) FROM computed_metrics)
         AND cm.revenue_yield IS NOT NULL
         AND cm.revenue_yield > 0
@@ -86,33 +94,55 @@ router.get("/overview", validate(dashboardQuerySchema), async (req, res, next) =
 
     // Top movers - fastest holder growth
     const fastestGrowth = await query(
-      `SELECT p.id, p.name, p.slug, p.logo_url, cm.holder_growth_7d, cm.holder_growth_30d
+      `SELECT p.id, p.name, p.slug, t.symbol as token_symbol, cm.holder_growth_30d
       FROM computed_metrics cm
       JOIN protocol p ON p.id = cm.protocol_id
+      LEFT JOIN token t ON t.protocol_id = p.id
       WHERE cm.date = (SELECT MAX(date) FROM computed_metrics)
-        AND cm.holder_growth_7d IS NOT NULL
-      ORDER BY cm.holder_growth_7d DESC
+        AND cm.holder_growth_30d IS NOT NULL
+      ORDER BY cm.holder_growth_30d DESC
       LIMIT 5`
     );
 
     const agg = aggregates.rows[0];
     const avgYield = highestYield.rows.length > 0
-      ? highestYield.rows.reduce((sum: number, r: any) => sum + Number(r.revenue_yield || 0), 0) / highestYield.rows.length
+      ? highestYield.rows.reduce((sum: number, r: any) => sum + Number(r.revenue_yield_pct || 0), 0) / highestYield.rows.length
       : 0;
 
+    // Response format that matches the frontend DashboardData interface
     res.json({
-      total_fees_24h: Number(agg.total_fees),
-      total_revenue_24h: Number(agg.total_revenue),
-      total_holder_revenue_24h: Number(agg.total_holder_revenue),
-      protocols_with_fee_sharing: Number(feeSharingCount.rows[0].count),
-      avg_holder_revenue_yield: avgYield,
-      top_protocols: topProtocols.rows,
+      overview: {
+        total_fees: Number(agg.total_fees),
+        total_revenue: Number(agg.total_revenue),
+        total_holder_revenue: Number(agg.total_holder_revenue),
+        protocols_with_fee_sharing: Number(feeSharingCount.rows[0].count),
+        avg_holder_revenue_yield: avgYield,
+      },
+      protocols: topProtocols.rows.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        logo_url: p.logo_url,
+        primary_category: p.primary_category,
+        tokenization_type: p.tokenization_type,
+        token_symbol: p.token_symbol,
+        period_fees: Number(p.period_fees),
+        period_revenue: Number(p.period_revenue),
+        period_holder_revenue: Number(p.period_holder_revenue),
+        price_usd: p.price_usd ? Number(p.price_usd) : null,
+        market_cap_usd: p.market_cap_usd ? Number(p.market_cap_usd) : null,
+        fdv_usd: p.fdv_usd ? Number(p.fdv_usd) : null,
+        real_pe_ratio: p.real_pe_ratio ? Number(p.real_pe_ratio) : null,
+        revenue_yield_pct: p.revenue_yield_pct ? Number(p.revenue_yield_pct) : null,
+        productive_token_score: p.productive_token_score ? Number(p.productive_token_score) : null,
+        holder_count: p.holder_count ? Number(p.holder_count) : null,
+        holder_growth_30d: p.holder_growth_30d ? Number(p.holder_growth_30d) : null,
+      })),
       top_movers: {
         highest_yield: highestYield.rows,
-        fastest_holder_growth: fastestGrowth.rows,
+        fastest_growth: fastestGrowth.rows,
       },
       as_of: new Date().toISOString(),
-      source: "crypto-terminal",
     });
   } catch (error) {
     next(error);
