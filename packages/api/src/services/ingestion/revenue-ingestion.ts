@@ -18,6 +18,16 @@ const DIMENSION_COLUMN_MAP: Record<DataType, string> = {
   dailyEarnings: "daily_earnings_usd",
 };
 
+// Core data types to fetch (most important first). Skip dailyEarnings and
+// dailyUserFees as they frequently 500 and are less useful.
+const CORE_DATA_TYPES: DataType[] = [
+  "dailyFees",
+  "dailyRevenue",
+  "dailyHoldersRevenue",
+  "dailyProtocolRevenue",
+  "dailySupplySideRevenue",
+];
+
 export async function ingestRevenueForProtocol(
   protocolSlug: string,
   protocolId: string,
@@ -25,51 +35,103 @@ export async function ingestRevenueForProtocol(
 ): Promise<number> {
   let totalRecords = 0;
 
-  for (const [dataType, column] of Object.entries(DIMENSION_COLUMN_MAP)) {
-    try {
-      const data = await defillama.getProtocolFees(protocolSlug, dataType as DataType);
+  // Fetch all core data types in parallel for this protocol
+  const results = await Promise.allSettled(
+    CORE_DATA_TYPES.map(async (dataType) => {
+      const column = DIMENSION_COLUMN_MAP[dataType];
+      const data = await defillama.getProtocolFees(protocolSlug, dataType);
+      return { dataType, column, data };
+    })
+  );
 
-      if (!data.totalDataChart?.length) continue;
+  for (const result of results) {
+    if (result.status === "rejected") continue;
+    const { dataType, column, data } = result.value;
 
-      for (const [timestamp, value] of data.totalDataChart) {
-        const date = formatDate(new Date(timestamp * 1000));
+    if (!data.totalDataChart?.length) continue;
 
-        await query(
-          `INSERT INTO revenue_daily (id, protocol_id, date, ${column}, source_provider, source_as_of, ingestion_run_id)
-          VALUES ($1, $2, $3, $4, 'defillama', NOW(), $5)
-          ON CONFLICT (protocol_id, date) DO UPDATE SET
-            ${column} = EXCLUDED.${column},
-            source_as_of = NOW(),
-            ingestion_run_id = EXCLUDED.ingestion_run_id`,
-          [uuid(), protocolId, date, value, runId]
-        );
-        totalRecords++;
-      }
+    // Batch insert using a single transaction per data type
+    const rows = data.totalDataChart.map(([timestamp, value]) => ({
+      date: formatDate(new Date(timestamp * 1000)),
+      value,
+    }));
 
-      // Store chain breakdown if available
-      if (data.totalDataChartBreakdown?.length) {
-        for (let i = 0; i < data.totalDataChart.length; i++) {
-          const [timestamp] = data.totalDataChart[i];
-          const breakdown = data.totalDataChartBreakdown[i];
-          if (breakdown && dataType === "dailyFees") {
-            const date = formatDate(new Date(timestamp * 1000));
-            await query(
-              `UPDATE revenue_daily SET chain_breakdown = $1
-              WHERE protocol_id = $2 AND date = $3`,
-              [JSON.stringify(breakdown), protocolId, date]
-            );
-          }
+    // Process in chunks of 500 for transaction size limits
+    const CHUNK = 500;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      await transaction(async (client) => {
+        for (const row of chunk) {
+          await client.query(
+            `INSERT INTO revenue_daily (id, protocol_id, date, ${column}, source_provider, source_as_of, ingestion_run_id)
+            VALUES ($1, $2, $3, $4, 'defillama', NOW(), $5)
+            ON CONFLICT (protocol_id, date) DO UPDATE SET
+              ${column} = EXCLUDED.${column},
+              source_as_of = NOW(),
+              ingestion_run_id = EXCLUDED.ingestion_run_id`,
+            [uuid(), protocolId, row.date, row.value, runId]
+          );
         }
+      });
+      totalRecords += chunk.length;
+    }
+
+    // Store chain breakdown if available (fees only)
+    if (dataType === "dailyFees" && data.totalDataChartBreakdown?.length) {
+      try {
+        await transaction(async (client) => {
+          for (let i = 0; i < Math.min(data.totalDataChart.length, data.totalDataChartBreakdown.length); i++) {
+            const [timestamp] = data.totalDataChart[i];
+            const breakdown = data.totalDataChartBreakdown[i];
+            if (breakdown) {
+              const date = formatDate(new Date(timestamp * 1000));
+              await client.query(
+                `UPDATE revenue_daily SET chain_breakdown = $1
+                WHERE protocol_id = $2 AND date = $3`,
+                [JSON.stringify(breakdown), protocolId, date]
+              );
+            }
+          }
+        });
+      } catch {
+        // Non-critical, skip breakdown errors
       }
-    } catch (error) {
-      console.error(
-        `Failed to ingest ${dataType} for ${protocolSlug}:`,
-        (error as Error).message
-      );
     }
   }
 
   return totalRecords;
+}
+
+/**
+ * Process a batch of protocols concurrently.
+ */
+async function processBatch(
+  batch: Array<{ id: string; slug: string; defillama_id: string }>,
+  runId: string
+): Promise<{ processed: number; failed: number }> {
+  let processed = 0;
+  let failed = 0;
+
+  const results = await Promise.allSettled(
+    batch.map(async (protocol) => {
+      const slug = protocol.defillama_id || protocol.slug;
+      const records = await ingestRevenueForProtocol(slug, protocol.id, runId);
+      return { slug: protocol.slug, records };
+    })
+  );
+
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      processed += result.value.records;
+      if (result.value.records > 0) {
+        console.log(`  Ingested ${result.value.records} records for ${result.value.slug}`);
+      }
+    } else {
+      failed++;
+    }
+  }
+
+  return { processed, failed };
 }
 
 export async function ingestAllRevenue(): Promise<void> {
@@ -83,23 +145,34 @@ export async function ingestAllRevenue(): Promise<void> {
   );
 
   try {
+    // Only fetch protocols that have fee data — not all 6000+
     const protocols = await query(
-      `SELECT id, slug, defillama_id FROM protocol WHERE status = 'active'`
+      `SELECT id, slug, defillama_id FROM protocol
+       WHERE status = 'active' AND has_fee_data = true
+       ORDER BY slug`
     );
+
+    console.log(`[revenue] Processing ${protocols.rows.length} fee-generating protocols`);
 
     let totalProcessed = 0;
     let totalFailed = 0;
 
-    for (const protocol of protocols.rows) {
-      try {
-        const slug = protocol.defillama_id || protocol.slug;
-        const records = await ingestRevenueForProtocol(slug, protocol.id, runId);
-        totalProcessed += records;
-        console.log(`  Ingested ${records} revenue records for ${protocol.slug}`);
-      } catch (error) {
-        totalFailed++;
-        console.error(`  Failed: ${protocol.slug}:`, (error as Error).message);
-      }
+    // Process in concurrent batches of 5 protocols at a time
+    const CONCURRENCY = 5;
+    for (let i = 0; i < protocols.rows.length; i += CONCURRENCY) {
+      const batch = protocols.rows.slice(i, i + CONCURRENCY);
+      const { processed, failed } = await processBatch(batch, runId);
+      totalProcessed += processed;
+      totalFailed += failed;
+
+      // Update progress in ingestion_run for status tracking
+      const pct = Math.round(((i + batch.length) / protocols.rows.length) * 100);
+      await query(
+        `UPDATE ingestion_run SET records_processed = $2, records_failed = $3
+        WHERE id = $1`,
+        [runId, totalProcessed, totalFailed]
+      );
+      console.log(`[revenue] Progress: ${i + batch.length}/${protocols.rows.length} protocols (${pct}%), ${totalProcessed} records`);
     }
 
     await query(

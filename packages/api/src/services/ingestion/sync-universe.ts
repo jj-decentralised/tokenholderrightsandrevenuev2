@@ -262,8 +262,8 @@ export async function syncProtocolUniverse(): Promise<SyncStats> {
 
           // Upsert protocol
           const result = await client.query(
-            `INSERT INTO protocol (id, name, slug, defillama_id, coingecko_id, description, website_url, logo_url, primary_category, tokenization_type, is_parent, status)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'active')
+            `INSERT INTO protocol (id, name, slug, defillama_id, coingecko_id, description, website_url, logo_url, primary_category, tokenization_type, is_parent, has_fee_data, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'active')
             ON CONFLICT (slug) DO UPDATE SET
               defillama_id = COALESCE(EXCLUDED.defillama_id, protocol.defillama_id),
               coingecko_id = COALESCE(EXCLUDED.coingecko_id, protocol.coingecko_id),
@@ -271,6 +271,7 @@ export async function syncProtocolUniverse(): Promise<SyncStats> {
               website_url = COALESCE(EXCLUDED.website_url, protocol.website_url),
               logo_url = COALESCE(EXCLUDED.logo_url, protocol.logo_url),
               primary_category = EXCLUDED.primary_category,
+              has_fee_data = EXCLUDED.has_fee_data OR protocol.has_fee_data,
               updated_at = NOW()
             RETURNING id, (xmax = 0) AS is_new`,
             [
@@ -285,6 +286,7 @@ export async function syncProtocolUniverse(): Promise<SyncStats> {
               category,
               p.symbol ? "tokenized" : "non_tokenized",
               !!p.parentProtocol,
+              p.hasFeeData,
             ]
           );
 
@@ -441,12 +443,13 @@ export async function syncFeeProtocols(): Promise<SyncStats> {
           const coingeckoId = cgByName.get(f.name.toLowerCase()) || null;
 
           const result = await client.query(
-            `INSERT INTO protocol (id, name, slug, defillama_id, coingecko_id, primary_category, tokenization_type, status)
-            VALUES ($1, $2, $3, $4, $5, $6, 'non_tokenized', 'active')
+            `INSERT INTO protocol (id, name, slug, defillama_id, coingecko_id, primary_category, tokenization_type, has_fee_data, status)
+            VALUES ($1, $2, $3, $4, $5, $6, 'non_tokenized', true, 'active')
             ON CONFLICT (slug) DO UPDATE SET
               defillama_id = COALESCE(EXCLUDED.defillama_id, protocol.defillama_id),
               coingecko_id = COALESCE(EXCLUDED.coingecko_id, protocol.coingecko_id),
               primary_category = EXCLUDED.primary_category,
+              has_fee_data = true,
               updated_at = NOW()
             RETURNING id, (xmax = 0) AS is_new`,
             [uuid(), f.name, slug, slug, coingeckoId, category]

@@ -1,6 +1,7 @@
 import { MetricCard } from "@/components/ui/MetricCard";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { ProductiveScore } from "@/components/ui/ProductiveScore";
+import { SyncStatusBar } from "@/components/ui/SyncStatusBar";
 import { fetchApi, formatUSD, formatPercent, formatNumber, formatRatio } from "@/lib/api";
 
 interface DashboardData {
@@ -111,6 +112,9 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
+      {/* Sync Status */}
+      <SyncStatusBar />
+
       {/* Market Overview Banner */}
       <div>
         <div className="flex items-center justify-between mb-4">

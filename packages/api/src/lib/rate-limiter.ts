@@ -34,11 +34,16 @@ export async function withRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error as Error;
+      // Don't retry 4xx client errors — they won't succeed on retry
+      const msg = lastError.message || "";
+      if (/\b(400|401|403|404|422)\b/.test(msg)) {
+        throw lastError;
+      }
       if (attempt < maxRetries) {
         const delay = baseDelay * Math.pow(2, attempt);
         console.warn(
           `Retry ${attempt + 1}/${maxRetries} after ${delay}ms:`,
-          (error as Error).message
+          msg
         );
         await new Promise((r) => setTimeout(r, delay));
       }
