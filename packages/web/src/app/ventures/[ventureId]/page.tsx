@@ -4,6 +4,8 @@ import { ProductiveScore } from "@/components/ui/ProductiveScore";
 import { ConfidenceBadge } from "@/components/ui/ConfidenceBadge";
 import { fetchApi, formatUSD, formatNumber, formatRatio } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 interface VentureSummary {
   protocol: {
     id: string;

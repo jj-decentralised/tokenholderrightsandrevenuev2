@@ -4,6 +4,8 @@ import { ProductiveScore } from "@/components/ui/ProductiveScore";
 import { SyncStatusBar } from "@/components/ui/SyncStatusBar";
 import { fetchApi, formatUSD, formatPercent, formatNumber, formatRatio } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 interface DashboardData {
   overview: {
     total_fees: number;

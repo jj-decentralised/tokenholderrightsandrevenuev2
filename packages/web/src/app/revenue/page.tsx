@@ -2,6 +2,8 @@ import { MetricCard } from "@/components/ui/MetricCard";
 import { SourceBadge } from "@/components/ui/SourceBadge";
 import { fetchApi, formatUSD } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 interface RevenueAtlasData {
   overview: {
     total_fees: number;
