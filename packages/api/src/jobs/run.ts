@@ -6,6 +6,7 @@ import {
   ingestAllMarketData,
   ingestAllHolderData,
   computeDailyMetrics,
+  alliumIngestion,
 } from "../services/ingestion/index.js";
 
 const JOBS: Record<string, () => Promise<void>> = {
@@ -13,11 +14,30 @@ const JOBS: Record<string, () => Promise<void>> = {
   market: ingestAllMarketData,
   holders: ingestAllHolderData,
   compute: computeDailyMetrics,
+  "allium-reconcile": () => alliumIngestion.reconcilePrices(),
+  "allium-sql": () =>
+    alliumIngestion.runCustomAnalytics([
+      {
+        name: "ETH DEX Volume (30D)",
+        sql: alliumIngestion.SQL_QUERIES.ethDexVolume30d,
+        handler: async (rows) => {
+          console.log(`  Received ${rows.length} days of ETH DEX volume data`);
+        },
+      },
+      {
+        name: "Solana DEX Volume (7D)",
+        sql: alliumIngestion.SQL_QUERIES.solanaDexVolume,
+        handler: async (rows) => {
+          console.log(`  Received ${rows.length} rows of Solana DEX volume data`);
+        },
+      },
+    ]),
   all: async () => {
     await ingestAllRevenue();
     await ingestAllMarketData();
     await ingestAllHolderData();
     await computeDailyMetrics();
+    await alliumIngestion.reconcilePrices();
   },
 };
 

@@ -4,6 +4,7 @@ import {
   ingestAllMarketData,
   ingestAllHolderData,
   computeDailyMetrics,
+  alliumIngestion,
 } from "../services/ingestion/index.js";
 
 export function startScheduler(): void {
@@ -70,5 +71,40 @@ export function startScheduler(): void {
     }
   });
 
-  console.log("Scheduler started with daily and intraday jobs");
+  // Daily at 05:00 UTC - Allium price reconciliation
+  cron.schedule("0 5 * * *", async () => {
+    console.log("[CRON] Starting Allium price reconciliation");
+    try {
+      await alliumIngestion.reconcilePrices();
+    } catch (error) {
+      console.error("[CRON] Allium reconciliation failed:", error);
+    }
+  });
+
+  // Weekly Sunday at 06:00 UTC - Allium custom SQL analytics
+  cron.schedule("0 6 * * 0", async () => {
+    console.log("[CRON] Starting Allium weekly SQL analytics");
+    try {
+      await alliumIngestion.runCustomAnalytics([
+        {
+          name: "ETH DEX Volume (30D)",
+          sql: alliumIngestion.SQL_QUERIES.ethDexVolume30d,
+          handler: async (rows) => {
+            console.log(`  ETH DEX: ${rows.length} days`);
+          },
+        },
+        {
+          name: "Top Gas Consumers (7D)",
+          sql: alliumIngestion.SQL_QUERIES.topGasConsumers7d,
+          handler: async (rows) => {
+            console.log(`  Top gas consumers: ${rows.length} contracts`);
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("[CRON] Allium SQL analytics failed:", error);
+    }
+  });
+
+  console.log("Scheduler started with daily, intraday, and weekly jobs");
 }

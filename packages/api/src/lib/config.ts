@@ -31,9 +31,9 @@ export const config = {
       rateLimit: { maxConcurrent: 5, minTime: 200 },
     },
     allium: {
-      baseUrl: "https://api.allium.so/api/v1",
+      baseUrl: "https://api.allium.so",
       apiKey: process.env.ALLIUM_API_KEY || "",
-      rateLimit: { maxConcurrent: 3, minTime: 500 },
+      rateLimit: { maxConcurrent: 1, minTime: 1100 }, // Allium enforces strict 1 req/sec
     },
   },
 
