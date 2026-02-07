@@ -1,12 +1,17 @@
 import { v4 as uuid } from "uuid";
-import { query } from "../../db/connection.js";
+import { query, transaction } from "../../db/connection.js";
 import { coingecko } from "../providers/coingecko.js";
 import { formatDate } from "../../lib/time.js";
 
+/**
+ * Ingest market data for ALL tokens in our database by paginating through
+ * CoinGecko's /coins/markets endpoint. Matches on coingecko_id.
+ */
 export async function ingestMarketDataBulk(runId: string): Promise<number> {
   let totalRecords = 0;
   let page = 1;
   const perPage = 250;
+  const maxPages = 60; // Up to 15,000 coins
 
   // Fetch all tracked tokens
   const tokens = await query(
@@ -16,21 +21,28 @@ export async function ingestMarketDataBulk(runId: string): Promise<number> {
     tokens.rows.map((t: any) => [t.coingecko_id, t.id])
   );
 
-  // Use bulk markets endpoint
+  console.log(`  Tracking ${tokenMap.size} tokens with CoinGecko IDs`);
+
+  // Paginate through CoinGecko markets
   let hasMore = true;
-  while (hasMore) {
+  let matchedThisPage = 0;
+  let consecutiveEmptyPages = 0;
+
+  while (hasMore && page <= maxPages) {
     try {
-      const markets = await coingecko.getMarkets(page, perPage, true);
+      const markets = await coingecko.getMarkets(page, perPage, false);
       if (markets.length === 0) {
         hasMore = false;
         break;
       }
 
+      matchedThisPage = 0;
       for (const coin of markets) {
         const tokenId = tokenMap.get(coin.id);
         if (!tokenId) continue;
 
         const date = formatDate(new Date());
+        matchedThisPage++;
 
         await query(
           `INSERT INTO token_market_daily
@@ -60,17 +72,35 @@ export async function ingestMarketDataBulk(runId: string): Promise<number> {
         totalRecords++;
       }
 
+      console.log(`  Page ${page}: ${matchedThisPage}/${markets.length} matched (total: ${totalRecords})`);
+
+      // Stop if we haven't matched anything for 5 consecutive pages
+      // (means we're past the tail of our tracked tokens)
+      if (matchedThisPage === 0) {
+        consecutiveEmptyPages++;
+        if (consecutiveEmptyPages >= 5) {
+          console.log(`  Stopping: ${consecutiveEmptyPages} consecutive pages with no matches`);
+          hasMore = false;
+        }
+      } else {
+        consecutiveEmptyPages = 0;
+      }
+
       page++;
       if (markets.length < perPage) hasMore = false;
     } catch (error) {
-      console.error(`Market data page ${page} failed:`, (error as Error).message);
-      hasMore = false;
+      console.error(`  Market data page ${page} failed:`, (error as Error).message);
+      page++;
+      // Continue to next page on error rather than aborting
     }
   }
 
   return totalRecords;
 }
 
+/**
+ * Backfill historical market data for a specific token.
+ */
 export async function ingestMarketHistory(
   tokenId: string,
   coingeckoId: string,
@@ -102,6 +132,81 @@ export async function ingestMarketHistory(
   }
 
   return records;
+}
+
+/**
+ * Backfill historical market data for all tokens that have no historical data yet.
+ * Processes tokens in batches with priority by market cap.
+ */
+export async function backfillMarketHistory(
+  days: number = 365,
+  batchSize: number = 50
+): Promise<number> {
+  const runId = `market-backfill-${Date.now()}`;
+  console.log(`Starting market history backfill (${days} days, batch ${batchSize}): ${runId}`);
+
+  await query(
+    `INSERT INTO ingestion_run (id, provider, job_type, status)
+    VALUES ($1, 'coingecko', 'market_backfill', 'running')`,
+    [runId]
+  );
+
+  let totalRecords = 0;
+  let processed = 0;
+  let failed = 0;
+
+  try {
+    // Find tokens that need backfill: have coingecko_id but fewer than 30 days of data
+    const tokens = await query(
+      `SELECT t.id, t.coingecko_id, t.name,
+              COUNT(tmd.id) AS data_days
+      FROM token t
+      LEFT JOIN token_market_daily tmd ON tmd.token_id = t.id
+      WHERE t.coingecko_id IS NOT NULL
+      GROUP BY t.id, t.coingecko_id, t.name
+      HAVING COUNT(tmd.id) < 30
+      ORDER BY COUNT(tmd.id) ASC
+      LIMIT $1`,
+      [batchSize]
+    );
+
+    console.log(`  Found ${tokens.rows.length} tokens needing backfill`);
+
+    for (const token of tokens.rows) {
+      try {
+        const records = await ingestMarketHistory(
+          token.id,
+          token.coingecko_id,
+          days,
+          runId
+        );
+        totalRecords += records;
+        processed++;
+        console.log(`  Backfilled ${records} days for ${token.name} (${processed}/${tokens.rows.length})`);
+      } catch (error) {
+        failed++;
+        console.error(`  Backfill failed for ${token.name}:`, (error as Error).message);
+      }
+    }
+
+    await query(
+      `UPDATE ingestion_run SET status = 'completed', completed_at = NOW(),
+        records_processed = $2, records_failed = $3
+      WHERE id = $1`,
+      [runId, totalRecords, failed]
+    );
+
+    console.log(`Market history backfill complete: ${totalRecords} records for ${processed} tokens, ${failed} failures`);
+    return totalRecords;
+  } catch (error) {
+    await query(
+      `UPDATE ingestion_run SET status = 'failed', completed_at = NOW(),
+        error_message = $2
+      WHERE id = $1`,
+      [runId, (error as Error).message]
+    );
+    throw error;
+  }
 }
 
 export async function ingestAllMarketData(): Promise<void> {

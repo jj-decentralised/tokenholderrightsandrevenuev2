@@ -30,6 +30,12 @@ interface DefiLlamaProtocol {
   url: string;
   description: string;
   parentProtocol?: string;
+  symbol?: string;
+  tvl?: number;
+  geckoId?: string | null;
+  cmcId?: string | null;
+  twitter?: string;
+  forkedFrom?: string[];
 }
 
 type DataType =
@@ -101,6 +107,26 @@ export async function getAllProtocols(): Promise<DefiLlamaProtocol[]> {
   );
 }
 
+export async function getRevenueOverview(): Promise<DefiLlamaFeeResponse[]> {
+  return limiter.schedule(() =>
+    withRetry(() =>
+      fetchJSON<{ protocols: DefiLlamaFeeResponse[] }>(
+        `${config.providers.defillama.baseUrl}/overview/fees?dataType=dailyRevenue`
+      ).then((r) => r.protocols)
+    )
+  );
+}
+
+export async function getHoldersRevenueOverview(): Promise<DefiLlamaFeeResponse[]> {
+  return limiter.schedule(() =>
+    withRetry(() =>
+      fetchJSON<{ protocols: DefiLlamaFeeResponse[] }>(
+        `${config.providers.defillama.baseUrl}/overview/fees?dataType=dailyHoldersRevenue`
+      ).then((r) => r.protocols)
+    )
+  );
+}
+
 export async function getEmissions(slug: string): Promise<unknown> {
   return limiter.schedule(() =>
     withRetry(() =>
@@ -123,6 +149,8 @@ export async function getTreasury(slug: string): Promise<unknown> {
 
 export const defillama = {
   getFeesOverview,
+  getRevenueOverview,
+  getHoldersRevenueOverview,
   getProtocolFees,
   getProtocolFeesChart,
   getAllProtocols,

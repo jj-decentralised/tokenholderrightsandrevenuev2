@@ -7,13 +7,38 @@ import {
   ingestAllHolderData,
   computeDailyMetrics,
   alliumIngestion,
+  syncProtocolUniverse,
+  syncFeeProtocols,
+  syncTokenUniverse,
+  backfillMarketHistory,
 } from "../services/ingestion/index.js";
 
 const JOBS: Record<string, () => Promise<void>> = {
+  // ── Universe sync jobs ─────────────────────────────────────────────
+  "sync-universe": async () => {
+    await syncProtocolUniverse();
+  },
+  "sync-fees": async () => {
+    await syncFeeProtocols();
+  },
+  "sync-tokens": async () => {
+    await syncTokenUniverse();
+  },
+  "sync-all": async () => {
+    await syncProtocolUniverse();
+    await syncTokenUniverse();
+  },
+
+  // ── Data ingestion jobs ────────────────────────────────────────────
   revenue: ingestAllRevenue,
   market: ingestAllMarketData,
   holders: ingestAllHolderData,
   compute: computeDailyMetrics,
+  "backfill-market": async () => {
+    const days = parseInt(process.argv[3] || "365", 10);
+    const batch = parseInt(process.argv[4] || "50", 10);
+    await backfillMarketHistory(days, batch);
+  },
   "allium-reconcile": () => alliumIngestion.reconcilePrices(),
   "allium-sql": () =>
     alliumIngestion.runCustomAnalytics([
@@ -32,12 +57,21 @@ const JOBS: Record<string, () => Promise<void>> = {
         },
       },
     ]),
+
+  // ── Full pipeline ──────────────────────────────────────────────────
   all: async () => {
+    console.log("=== Step 1/6: Sync protocol universe ===");
+    await syncFeeProtocols();
+    console.log("=== Step 2/6: Sync token universe ===");
+    await syncTokenUniverse();
+    console.log("=== Step 3/6: Ingest revenue data ===");
     await ingestAllRevenue();
+    console.log("=== Step 4/6: Ingest market data ===");
     await ingestAllMarketData();
+    console.log("=== Step 5/6: Ingest holder data ===");
     await ingestAllHolderData();
+    console.log("=== Step 6/6: Compute metrics ===");
     await computeDailyMetrics();
-    await alliumIngestion.reconcilePrices();
   },
 };
 

@@ -5,10 +5,24 @@ import {
   ingestAllHolderData,
   computeDailyMetrics,
   alliumIngestion,
+  syncFeeProtocols,
+  syncProtocolUniverse,
+  syncTokenUniverse,
 } from "../services/ingestion/index.js";
 
 export function startScheduler(): void {
   console.log("Starting job scheduler...");
+
+  // Daily at 00:30 UTC - Sync fee protocols from DefiLlama (runs BEFORE ingestion)
+  cron.schedule("30 0 * * *", async () => {
+    console.log("[CRON] Starting daily fee-protocol sync");
+    try {
+      await syncFeeProtocols();
+      await syncTokenUniverse(10); // Top 2500 tokens
+    } catch (error) {
+      console.error("[CRON] Protocol sync failed:", error);
+    }
+  });
 
   // Daily at 01:00 UTC - Revenue ingestion
   cron.schedule("0 1 * * *", async () => {
@@ -53,7 +67,6 @@ export function startScheduler(): void {
   // Every 15 minutes - Price updates for top tokens
   cron.schedule("*/15 * * * *", async () => {
     try {
-      // Lightweight price update - just simple/price endpoint
       const { coingecko } = await import("../services/providers/coingecko.js");
       const { query: dbQuery } = await import("../db/connection.js");
       const tokens = await dbQuery(
@@ -81,8 +94,19 @@ export function startScheduler(): void {
     }
   });
 
-  // Weekly Sunday at 06:00 UTC - Allium custom SQL analytics
+  // Weekly Sunday at 06:00 UTC - Full universe sync (deep scan)
   cron.schedule("0 6 * * 0", async () => {
+    console.log("[CRON] Starting weekly full universe sync");
+    try {
+      await syncProtocolUniverse();
+      await syncTokenUniverse(40); // Top 10,000 tokens
+    } catch (error) {
+      console.error("[CRON] Full universe sync failed:", error);
+    }
+  });
+
+  // Weekly Sunday at 08:00 UTC - Allium custom SQL analytics
+  cron.schedule("0 8 * * 0", async () => {
     console.log("[CRON] Starting Allium weekly SQL analytics");
     try {
       await alliumIngestion.runCustomAnalytics([
@@ -106,5 +130,14 @@ export function startScheduler(): void {
     }
   });
 
-  console.log("Scheduler started with daily, intraday, and weekly jobs");
+  console.log("Scheduler started:");
+  console.log("  00:30 UTC - Daily fee-protocol sync");
+  console.log("  01:00 UTC - Revenue ingestion");
+  console.log("  02:00 UTC - Market data ingestion");
+  console.log("  03:00 UTC - Holder snapshots");
+  console.log("  04:00 UTC - Compute metrics");
+  console.log("  05:00 UTC - Allium reconciliation");
+  console.log("  Sunday 06:00 UTC - Full universe sync");
+  console.log("  Sunday 08:00 UTC - Allium SQL analytics");
+  console.log("  Every 15 min - Top token price updates");
 }

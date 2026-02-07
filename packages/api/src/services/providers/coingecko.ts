@@ -138,9 +138,44 @@ export async function getSimplePrice(
   );
 }
 
+interface CoinGeckoListItem {
+  id: string;
+  symbol: string;
+  name: string;
+  platforms?: Record<string, string>;
+}
+
+export async function getCoinsList(
+  includePlatform = true
+): Promise<CoinGeckoListItem[]> {
+  return limiter.schedule(() =>
+    withRetry(() =>
+      fetchJSON<CoinGeckoListItem[]>(
+        `/coins/list?include_platform=${includePlatform}`
+      )
+    )
+  );
+}
+
+export async function getAllMarkets(
+  maxPages = 60
+): Promise<CoinGeckoMarket[]> {
+  const allMarkets: CoinGeckoMarket[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const markets = await getMarkets(page, 250, false);
+    if (markets.length === 0) break;
+    allMarkets.push(...markets);
+    console.log(`  CoinGecko markets page ${page}: ${markets.length} coins (total: ${allMarkets.length})`);
+    if (markets.length < 250) break;
+  }
+  return allMarkets;
+}
+
 export const coingecko = {
   getMarkets,
+  getAllMarkets,
   getCoinDetail,
+  getCoinsList,
   getMarketChart,
   getMarketChartRange,
   getSimplePrice,
