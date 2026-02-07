@@ -1,0 +1,29 @@
+{
+  "name": "crypto-terminal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Crypto Revenue, Valuation, and Holder Intelligence Terminal",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev --workspace=packages/api",
+    "dev:web": "npm run dev --workspace=packages/web",
+    "build": "npm run build --workspace=packages/api && npm run build --workspace=packages/web",
+    "build:api": "npm run build --workspace=packages/api",
+    "build:web": "npm run build --workspace=packages/web",
+    "test": "npm run test --workspaces --if-present",
+    "test:api": "npm run test --workspace=packages/api",
+    "test:web": "npm run test --workspace=packages/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "migrate": "npm run migrate --workspace=packages/api",
+    "migrate:down": "npm run migrate:down --workspace=packages/api",
+    "ingest": "npm run ingest --workspace=packages/api",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.0"
+  }
+}
