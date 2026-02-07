@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/api";
 
 export interface Column<T> {
@@ -35,14 +34,14 @@ export function DataTable<T>({
     <div className={cn("overflow-x-auto", className)}>
       <table className="w-full data-table">
         <thead>
-          <tr className="border-b border-[#30363d]">
+          <tr className="border-b border-[#e5e5e3]">
             {columns.map((col) => (
               <th
                 key={col.key}
                 className={cn(
-                  "px-3 py-2 text-xs font-medium text-[#8b949e] uppercase tracking-wide whitespace-nowrap",
+                  "px-3 py-2.5 text-xs font-medium text-[#8f9a9e] uppercase tracking-wide whitespace-nowrap",
                   col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left",
-                  col.sortable && "cursor-pointer hover:text-[#e6edf3]"
+                  col.sortable && "cursor-pointer hover:text-[#133c3b]"
                 )}
                 style={{ width: col.width }}
                 onClick={() => {
@@ -55,7 +54,7 @@ export function DataTable<T>({
                 <span className="flex items-center gap-1">
                   {col.header}
                   {col.sortable && sortKey === col.key && (
-                    <span>{sortDir === "asc" ? "\u25B2" : "\u25BC"}</span>
+                    <span className="text-[#32b88d]">{sortDir === "asc" ? "\u25B2" : "\u25BC"}</span>
                   )}
                 </span>
               </th>
@@ -68,7 +67,7 @@ export function DataTable<T>({
               key={i}
               onClick={() => onRowClick?.(row)}
               className={cn(
-                "border-b border-[#21262d] hover:bg-[#161b22] transition-colors",
+                "border-b border-[#eeeeec] hover:bg-[#f7f7f5] transition-colors",
                 onRowClick && "cursor-pointer"
               )}
             >
@@ -87,7 +86,7 @@ export function DataTable<T>({
           ))}
           {data.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="px-3 py-8 text-center text-[#8b949e]">
+              <td colSpan={columns.length} className="px-3 py-8 text-center text-[#8f9a9e]">
                 No data available
               </td>
             </tr>

@@ -1,45 +1,35 @@
 "use client";
 
+import { AreaChart, Area, ResponsiveContainer } from "recharts";
+
 interface SparklineChartProps {
   data: number[];
-  width?: number;
-  height?: number;
   color?: string;
+  height?: number;
 }
 
 export function SparklineChart({
   data,
-  width = 80,
-  height = 24,
-  color = "#58a6ff",
+  color = "#32b88d",
+  height = 32,
 }: SparklineChartProps) {
-  if (!data || data.length < 2) return null;
-
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-
-  const points = data
-    .map((v, i) => {
-      const x = (i / (data.length - 1)) * width;
-      const y = height - ((v - min) / range) * (height - 4) - 2;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  const isPositive = data[data.length - 1] >= data[0];
-  const lineColor = color === "auto" ? (isPositive ? "#3fb950" : "#f85149") : color;
+  const chartData = data.map((value, i) => ({ value, i }));
+  const isPositive = data.length >= 2 && data[data.length - 1] >= data[0];
+  const sparkColor = color || (isPositive ? "#32b88d" : "#c0152f");
 
   return (
-    <svg width={width} height={height} className="inline-block">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={lineColor}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke={sparkColor}
+          fill={sparkColor}
+          fillOpacity={0.1}
+          strokeWidth={1.5}
+          dot={false}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }

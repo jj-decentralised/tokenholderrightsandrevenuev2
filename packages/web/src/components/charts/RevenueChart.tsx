@@ -1,81 +1,78 @@
 "use client";
 
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
-import { formatUSD } from "@/lib/api";
 
 interface RevenueChartProps {
   data: Array<{
     date: string;
-    daily_fees_usd?: number | null;
-    daily_revenue_usd?: number | null;
-    daily_holders_revenue_usd?: number | null;
+    fees?: number;
+    revenue?: number;
+    holder_revenue?: number;
   }>;
   height?: number;
 }
 
 export function RevenueChart({ data, height = 300 }: RevenueChartProps) {
-  const chartData = data.map((d) => ({
-    date: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    fees: d.daily_fees_usd ?? 0,
-    revenue: d.daily_revenue_usd ?? 0,
-    holderRevenue: d.daily_holders_revenue_usd ?? 0,
-  }));
-
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-        <defs>
-          <linearGradient id="gradFees" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#8b949e" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#8b949e" stopOpacity={0} />
-          </linearGradient>
-          <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#58a6ff" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#58a6ff" stopOpacity={0} />
-          </linearGradient>
-          <linearGradient id="gradHolder" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#3fb950" stopOpacity={0.4} />
-            <stop offset="95%" stopColor="#3fb950" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#21262d" />
+      <AreaChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#eeeeec" />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#8b949e", fontSize: 11 }}
+          tick={{ fontSize: 11, fill: "#8f9a9e" }}
           tickLine={false}
-          axisLine={{ stroke: "#30363d" }}
+          axisLine={{ stroke: "#e5e5e3" }}
         />
         <YAxis
-          tick={{ fill: "#8b949e", fontSize: 11 }}
+          tick={{ fontSize: 11, fill: "#8f9a9e" }}
           tickLine={false}
-          axisLine={{ stroke: "#30363d" }}
-          tickFormatter={(v) => formatUSD(v, true)}
+          axisLine={false}
+          tickFormatter={(v) => `$${(v / 1e6).toFixed(1)}M`}
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "#161b22",
-            border: "1px solid #30363d",
-            borderRadius: "6px",
-            color: "#e6edf3",
-            fontSize: "12px",
+            backgroundColor: "#fffffe",
+            border: "1px solid #e5e5e3",
+            borderRadius: "8px",
+            fontSize: 12,
+            color: "#133c3b",
           }}
-          formatter={(value: number, name: string) => [
-            formatUSD(value),
-            name === "fees" ? "Total Fees" : name === "revenue" ? "Protocol Revenue" : "Holder Revenue",
-          ]}
+          formatter={(value: number) => [`$${(value / 1e6).toFixed(2)}M`, undefined]}
         />
-        <Legend
-          wrapperStyle={{ fontSize: "11px", color: "#8b949e" }}
-          formatter={(value) =>
-            value === "fees" ? "Total Fees" : value === "revenue" ? "Protocol Revenue" : "Holder Revenue"
-          }
+        <Area
+          type="monotone"
+          dataKey="fees"
+          stroke="#8f9a9e"
+          fill="#f7f7f5"
+          strokeWidth={1.5}
+          name="Fees"
         />
-        <Area type="monotone" dataKey="fees" stroke="#8b949e" fill="url(#gradFees)" strokeWidth={1.5} />
-        <Area type="monotone" dataKey="revenue" stroke="#58a6ff" fill="url(#gradRevenue)" strokeWidth={1.5} />
-        <Area type="monotone" dataKey="holderRevenue" stroke="#3fb950" fill="url(#gradHolder)" strokeWidth={2} />
+        <Area
+          type="monotone"
+          dataKey="revenue"
+          stroke="#2563eb"
+          fill="#2563eb"
+          fillOpacity={0.1}
+          strokeWidth={1.5}
+          name="Revenue"
+        />
+        <Area
+          type="monotone"
+          dataKey="holder_revenue"
+          stroke="#32b88d"
+          fill="#32b88d"
+          fillOpacity={0.15}
+          strokeWidth={2}
+          name="Holder Revenue"
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

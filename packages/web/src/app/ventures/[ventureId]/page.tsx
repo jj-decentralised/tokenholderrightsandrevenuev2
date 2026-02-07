@@ -67,14 +67,14 @@ export default function VentureDetailPage({ params }: { params: { ventureId: str
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-2xl font-bold">{p.name}</h1>
-            <span className="text-xs text-[#8b949e] bg-[#21262d] px-2 py-0.5 rounded capitalize">{p.category}</span>
-            <span className="text-xs text-[#8b949e] bg-[#21262d] px-2 py-0.5 rounded">{p.chains.join(", ")}</span>
+            <span className="text-xs text-[#8f9a9e] bg-[#f7f7f5] px-2 py-0.5 rounded capitalize">{p.category}</span>
+            <span className="text-xs text-[#8f9a9e] bg-[#f7f7f5] px-2 py-0.5 rounded">{p.chains.join(", ")}</span>
           </div>
-          <p className="text-sm text-[#8b949e] max-w-2xl">{p.description}</p>
+          <p className="text-sm text-[#8f9a9e] max-w-2xl">{p.description}</p>
         </div>
         <div className="flex items-center gap-2">
           <ProductiveScore score={p.score} size="lg" />
-          <span className="text-xs text-[#8b949e]">/ 10</span>
+          <span className="text-xs text-[#8f9a9e]">/ 10</span>
         </div>
       </div>
 
@@ -89,21 +89,21 @@ export default function VentureDetailPage({ params }: { params: { ventureId: str
       </div>
 
       {/* Revenue Waterfall */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
+      <div className="bg-white border border-[#e5e5e3] rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-medium">Revenue Waterfall (30D)</h2>
           <SourceBadge sources={["DefiLlama"]} />
         </div>
         <div className="grid grid-cols-5 gap-4 text-center">
           {[
-            { label: "Total Fees", value: p.revenue_30d, color: "#8b949e", pct: 100 },
-            { label: "Supply Side", value: 0, color: "#f0883e", pct: 0 },
-            { label: "Protocol Rev", value: p.revenue_30d, color: "#58a6ff", pct: 100 },
-            { label: "Incentives", value: 1200000, color: "#f85149", pct: 4.5 },
-            { label: "Holder Revenue", value: p.holder_revenue_30d, color: "#3fb950", pct: 100 },
+            { label: "Total Fees", value: p.revenue_30d, color: "#8f9a9e", pct: 100 },
+            { label: "Supply Side", value: 0, color: "#a84b2f", pct: 0 },
+            { label: "Protocol Rev", value: p.revenue_30d, color: "#32b88d", pct: 100 },
+            { label: "Incentives", value: 1200000, color: "#c0152f", pct: 4.5 },
+            { label: "Holder Revenue", value: p.holder_revenue_30d, color: "#32b88d", pct: 100 },
           ].map((item) => (
             <div key={item.label} className="space-y-2">
-              <div className="text-xs text-[#8b949e]">{item.label}</div>
+              <div className="text-xs text-[#8f9a9e]">{item.label}</div>
               <div
                 className="mx-auto rounded"
                 style={{
@@ -114,33 +114,33 @@ export default function VentureDetailPage({ params }: { params: { ventureId: str
                 }}
               />
               <div className="text-sm font-medium tabular-nums">{formatUSD(item.value, true)}</div>
-              <div className="text-xs text-[#8b949e]">{item.pct.toFixed(1)}%</div>
+              <div className="text-xs text-[#8f9a9e]">{item.pct.toFixed(1)}%</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Rights Panel */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
+      <div className="bg-white border border-[#e5e5e3] rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-medium">Token Holder Rights</h2>
           <ConfidenceBadge score={0.95} />
         </div>
         <div className="space-y-3">
           {p.rights.map((r, i) => (
-            <div key={i} className="flex items-start gap-3 p-3 bg-[#0d1117] rounded-lg">
-              <div className="flex-shrink-0 w-2 h-2 rounded-full mt-1.5 bg-[#3fb950]" />
+            <div key={i} className="flex items-start gap-3 p-3 bg-[#f7f7f5] rounded-lg">
+              <div className="flex-shrink-0 w-2 h-2 rounded-full mt-1.5 bg-[#32b88d]" />
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-[#3fb950] uppercase">{r.type.replace("_", " ")}</span>
-                  <span className="text-xs text-[#8b949e]">Since {r.since}</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-[#3fb950]/10 text-[#3fb950] border border-[#3fb950]/30">
+                  <span className="text-xs font-medium text-[#32b88d] uppercase">{r.type.replace("_", " ")}</span>
+                  <span className="text-xs text-[#8f9a9e]">Since {r.since}</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-[#32b88d]/5 text-[#32b88d] border border-[#32b88d]/20">
                     {r.status}
                   </span>
                 </div>
-                <p className="text-sm text-[#e6edf3]">{r.description}</p>
+                <p className="text-sm text-[#133c3b]">{r.description}</p>
                 {r.percentage && (
-                  <span className="text-xs text-[#8b949e] mt-1 inline-block">
+                  <span className="text-xs text-[#8f9a9e] mt-1 inline-block">
                     Allocation: {r.percentage}% of protocol revenue
                   </span>
                 )}
@@ -151,7 +151,7 @@ export default function VentureDetailPage({ params }: { params: { ventureId: str
       </div>
 
       {/* Financial Statements */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
+      <div className="bg-white border border-[#e5e5e3] rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-medium">Financial Statement (Monthly)</h2>
           <SourceBadge sources={["DefiLlama", "CoinGecko"]} />
@@ -159,16 +159,16 @@ export default function VentureDetailPage({ params }: { params: { ventureId: str
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#30363d]">
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Line Item</th>
+              <tr className="border-b border-[#e5e5e3]">
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Line Item</th>
                 {p.financial_statement.months.map((m) => (
-                  <th key={m} className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">{m}</th>
+                  <th key={m} className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">{m}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {p.financial_statement.rows.map((row) => (
-                <tr key={row.label} className={`border-b border-[#21262d] ${["Protocol Revenue", "Net Earnings", "Holder Revenue"].includes(row.label) ? "font-semibold" : ""}`}>
+                <tr key={row.label} className={`border-b border-[#eeeeec] ${["Protocol Revenue", "Net Earnings", "Holder Revenue"].includes(row.label) ? "font-semibold" : ""}`}>
                   <td className="px-3 py-2 text-sm">{row.label}</td>
                   {row.values.map((v, i) => (
                     <td key={i} className="px-3 py-2 text-sm text-right tabular-nums">
@@ -183,7 +183,7 @@ export default function VentureDetailPage({ params }: { params: { ventureId: str
       </div>
 
       {/* Top Holders */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
+      <div className="bg-white border border-[#e5e5e3] rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-medium">Top Token Holders</h2>
           <SourceBadge sources={["Codex"]} />
@@ -191,22 +191,22 @@ export default function VentureDetailPage({ params }: { params: { ventureId: str
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#30363d]">
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left w-8">#</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Address</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Label</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">Balance</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">% Supply</th>
+              <tr className="border-b border-[#e5e5e3]">
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left w-8">#</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Address</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Label</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">Balance</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">% Supply</th>
               </tr>
             </thead>
             <tbody>
               {p.top_holders.map((h) => (
-                <tr key={h.rank} className="border-b border-[#21262d]">
-                  <td className="px-3 py-2 text-xs text-[#8b949e]">{h.rank}</td>
-                  <td className="px-3 py-2 text-sm font-mono text-[#58a6ff]">{h.address}</td>
+                <tr key={h.rank} className="border-b border-[#eeeeec]">
+                  <td className="px-3 py-2 text-xs text-[#8f9a9e]">{h.rank}</td>
+                  <td className="px-3 py-2 text-sm font-mono text-[#32b88d]">{h.address}</td>
                   <td className="px-3 py-2">
                     {h.label && (
-                      <span className="text-xs bg-[#21262d] px-1.5 py-0.5 rounded text-[#8b949e]">{h.label}</span>
+                      <span className="text-xs bg-[#f7f7f5] px-1.5 py-0.5 rounded text-[#8f9a9e]">{h.label}</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-sm text-right tabular-nums">{formatNumber(h.balance, true)}</td>

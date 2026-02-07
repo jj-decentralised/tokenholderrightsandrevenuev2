@@ -3,15 +3,23 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #0d1117;
-  --bg-surface: #161b22;
-  --bg-elevated: #21262d;
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --border-primary: #30363d;
-  --positive: #3fb950;
-  --negative: #f85149;
-  --accent: #58a6ff;
+  --color-primary: #32b88d;
+  --color-primary-hover: #1d7464;
+
+  --color-bg: #fcfcf9;
+  --color-surface: #fffffe;
+  --color-elevated: #f7f7f5;
+  --color-border: #e5e5e3;
+  --color-border-light: #eeeeec;
+
+  --color-text: #133c3b;
+  --color-text-muted: #626c71;
+  --color-text-light: #8f9a9e;
+
+  --color-success: #32b88d;
+  --color-error: #c0152f;
+  --color-warning: #a84b2f;
+  --color-accent: #2563eb;
 }
 
 * {
@@ -25,47 +33,41 @@ html {
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Tabular numbers for all financial data */
 .tabular-nums {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-primary);
-  border-radius: 4px;
+  background: var(--color-border);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--color-text-light);
 }
 
-/* Financial table styles */
 .data-table th {
   position: sticky;
   top: 0;
-  background: var(--bg-surface);
+  background: var(--color-surface);
   z-index: 10;
 }
 
 @layer utilities {
-  .text-positive { color: var(--positive); }
-  .text-negative { color: var(--negative); }
-  .text-accent { color: var(--accent); }
-  .bg-surface { background-color: var(--bg-surface); }
-  .bg-elevated { background-color: var(--bg-elevated); }
-  .border-primary { border-color: var(--border-primary); }
+  .text-positive { color: var(--color-success); }
+  .text-negative { color: var(--color-error); }
+  .text-accent { color: var(--color-primary); }
 }

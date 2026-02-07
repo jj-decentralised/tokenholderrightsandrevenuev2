@@ -19,7 +19,7 @@ export default function RevenueAtlasPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Revenue Atlas</h1>
-          <p className="text-sm text-[#8b949e] mt-1">
+          <p className="text-sm text-[#8f9a9e] mt-1">
             Protocol revenue breakdown by category, chain, and holder allocation
           </p>
         </div>
@@ -49,17 +49,17 @@ export default function RevenueAtlasPage() {
       </div>
 
       {/* Revenue Table */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-[#30363d] flex items-center justify-between">
+      <div className="bg-white border border-[#e5e5e3] rounded-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#e5e5e3] flex items-center justify-between">
           <h2 className="text-sm font-medium">Revenue by Protocol (30D)</h2>
           <div className="flex items-center gap-2">
-            <select className="text-xs bg-[#0d1117] border border-[#30363d] rounded px-2 py-1 text-[#8b949e]">
+            <select className="text-xs bg-[#f7f7f5] border border-[#e5e5e3] rounded px-2 py-1 text-[#8f9a9e]">
               <option value="">All Categories</option>
               <option value="dex">DEX</option>
               <option value="lending">Lending</option>
               <option value="derivatives">Derivatives</option>
             </select>
-            <button className="text-xs text-[#8b949e] bg-[#21262d] border border-[#30363d] rounded px-2 py-1 hover:text-[#e6edf3]">
+            <button className="text-xs text-[#8f9a9e] bg-[#f7f7f5] border border-[#e5e5e3] rounded px-2 py-1 hover:text-[#133c3b]">
               Export CSV
             </button>
           </div>
@@ -67,40 +67,40 @@ export default function RevenueAtlasPage() {
         <div className="overflow-x-auto">
           <table className="w-full data-table">
             <thead>
-              <tr className="border-b border-[#30363d]">
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Protocol</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Category</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Chains</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">Total Fees</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">Protocol Revenue</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">Holder Revenue</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">Holder %</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left w-32">Distribution</th>
+              <tr className="border-b border-[#e5e5e3]">
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Protocol</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Category</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Chains</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">Total Fees</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">Protocol Revenue</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">Holder Revenue</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">Holder %</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left w-32">Distribution</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_REVENUE_DATA.map((p) => (
-                <tr key={p.name} className="border-b border-[#21262d] hover:bg-[#0d1117] transition-colors">
+                <tr key={p.name} className="border-b border-[#eeeeec] hover:bg-[#f7f7f5] transition-colors">
                   <td className="px-3 py-2.5 text-sm font-medium">{p.name}</td>
                   <td className="px-3 py-2.5">
-                    <span className="text-xs text-[#8b949e] bg-[#21262d] px-1.5 py-0.5 rounded capitalize">
+                    <span className="text-xs text-[#8f9a9e] bg-[#f7f7f5] px-1.5 py-0.5 rounded capitalize">
                       {p.category.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-[#8b949e]">{p.chains.join(", ")}</td>
+                  <td className="px-3 py-2.5 text-xs text-[#8f9a9e]">{p.chains.join(", ")}</td>
                   <td className="px-3 py-2.5 text-sm text-right tabular-nums">{formatUSD(p.fees, true)}</td>
-                  <td className="px-3 py-2.5 text-sm text-right tabular-nums text-[#58a6ff]">{formatUSD(p.revenue, true)}</td>
-                  <td className="px-3 py-2.5 text-sm text-right tabular-nums text-[#3fb950]">{formatUSD(p.holder_revenue, true)}</td>
+                  <td className="px-3 py-2.5 text-sm text-right tabular-nums text-[#32b88d]">{formatUSD(p.revenue, true)}</td>
+                  <td className="px-3 py-2.5 text-sm text-right tabular-nums text-[#32b88d]">{formatUSD(p.holder_revenue, true)}</td>
                   <td className="px-3 py-2.5 text-sm text-right tabular-nums">
-                    <span className={p.pct > 0 ? "text-[#3fb950]" : "text-[#8b949e]"}>
+                    <span className={p.pct > 0 ? "text-[#32b88d]" : "text-[#8f9a9e]"}>
                       {p.pct.toFixed(1)}%
                     </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <div className="flex h-2 rounded-full overflow-hidden bg-[#21262d]">
-                      <div className="bg-[#8b949e]" style={{ width: `${((p.fees - p.revenue) / p.fees) * 100}%` }} />
-                      <div className="bg-[#58a6ff]" style={{ width: `${((p.revenue - p.holder_revenue) / p.fees) * 100}%` }} />
-                      <div className="bg-[#3fb950]" style={{ width: `${(p.holder_revenue / p.fees) * 100}%` }} />
+                    <div className="flex h-2 rounded-full overflow-hidden bg-[#f7f7f5]">
+                      <div className="bg-[#8f9a9e]" style={{ width: `${((p.fees - p.revenue) / p.fees) * 100}%` }} />
+                      <div className="bg-[#32b88d]" style={{ width: `${((p.revenue - p.holder_revenue) / p.fees) * 100}%` }} />
+                      <div className="bg-[#32b88d]" style={{ width: `${(p.holder_revenue / p.fees) * 100}%` }} />
                     </div>
                   </td>
                 </tr>

@@ -11,7 +11,7 @@ export function SourceBadge({ sources, className }: SourceBadgeProps) {
       {sources.map((source) => (
         <span
           key={source}
-          className="text-[10px] text-[#8b949e] bg-[#21262d] border border-[#30363d] px-1.5 py-0.5 rounded"
+          className="text-[10px] text-[#8f9a9e] bg-[#f7f7f5] border border-[#eeeeec] px-1.5 py-0.5 rounded"
         >
           {source}
         </span>

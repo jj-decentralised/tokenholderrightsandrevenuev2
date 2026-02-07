@@ -22,56 +22,56 @@ export default function RightsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Rights Registry</h1>
-          <p className="text-sm text-[#8b949e] mt-1">
+          <p className="text-sm text-[#8f9a9e] mt-1">
             Token holder rights classification, realization status, and evidence tracking
           </p>
         </div>
         <SourceBadge sources={["Manual Research", "On-Chain"]} />
       </div>
 
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+      <div className="bg-white border border-[#e5e5e3] rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full data-table">
             <thead>
-              <tr className="border-b border-[#30363d]">
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Protocol</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Token</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Right Type</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-left">Mechanism</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-right">Holder %</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-center">Status</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-center">Since</th>
-                <th className="px-3 py-2 text-xs font-medium text-[#8b949e] text-center">Confidence</th>
+              <tr className="border-b border-[#e5e5e3]">
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Protocol</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Token</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Right Type</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-left">Mechanism</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-right">Holder %</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-center">Status</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-center">Since</th>
+                <th className="px-3 py-2 text-xs font-medium text-[#8f9a9e] text-center">Confidence</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_RIGHTS.map((r) => (
-                <tr key={r.token} className="border-b border-[#21262d] hover:bg-[#0d1117] transition-colors">
+                <tr key={r.token} className="border-b border-[#eeeeec] hover:bg-[#f7f7f5] transition-colors">
                   <td className="px-3 py-2.5 text-sm font-medium">{r.protocol}</td>
-                  <td className="px-3 py-2.5 text-sm text-[#8b949e]">{r.token}</td>
+                  <td className="px-3 py-2.5 text-sm text-[#8f9a9e]">{r.token}</td>
                   <td className="px-3 py-2.5">
-                    <span className="text-xs bg-[#21262d] px-1.5 py-0.5 rounded capitalize">
+                    <span className="text-xs bg-[#f7f7f5] px-1.5 py-0.5 rounded capitalize">
                       {r.type.replace(/_/g, " ")}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-sm text-[#8b949e] max-w-xs truncate">{r.mechanism}</td>
+                  <td className="px-3 py-2.5 text-sm text-[#8f9a9e] max-w-xs truncate">{r.mechanism}</td>
                   <td className="px-3 py-2.5 text-sm text-right tabular-nums">
-                    <span className={r.pct > 0 ? "text-[#3fb950]" : "text-[#8b949e]"}>
+                    <span className={r.pct > 0 ? "text-[#32b88d]" : "text-[#8f9a9e]"}>
                       {r.pct > 0 ? `${r.pct}%` : "\u2014"}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <span className={`text-xs px-1.5 py-0.5 rounded border ${
                       r.status === "active"
-                        ? "text-[#3fb950] border-[#3fb950]/30 bg-[#3fb950]/10"
+                        ? "text-[#32b88d] border-[#32b88d]/20 bg-[#32b88d]/5"
                         : r.status === "proposed"
-                        ? "text-[#d29922] border-[#d29922]/30 bg-[#d29922]/10"
-                        : "text-[#8b949e] border-[#8b949e]/30 bg-[#8b949e]/10"
+                        ? "text-[#a84b2f] border-[#a84b2f]/20 bg-[#a84b2f]/5"
+                        : "text-[#8f9a9e] border-[#8f9a9e]/20 bg-[#8f9a9e]/5"
                     }`}>
                       {r.status}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-center text-[#8b949e]">
+                  <td className="px-3 py-2.5 text-xs text-center text-[#8f9a9e]">
                     {r.since || "\u2014"}
                   </td>
                   <td className="px-3 py-2.5 text-center">

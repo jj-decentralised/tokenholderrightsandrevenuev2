@@ -44,7 +44,7 @@ export function ExportButton({ data, filename, format = "csv" }: ExportButtonPro
   return (
     <button
       onClick={handleExport}
-      className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8b949e] bg-[#21262d] border border-[#30363d] rounded-md hover:text-[#e6edf3] hover:border-[#8b949e] transition-colors"
+      className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#626c71] bg-[#f7f7f5] border border-[#e5e5e3] rounded-lg hover:text-[#133c3b] hover:border-[#626c71] transition-colors"
     >
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <path d="M6 1v7M3 5l3 3 3-3M2 10h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

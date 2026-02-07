@@ -21,7 +21,7 @@ const RANGES: { value: TimeRange; label: string }[] = [
 export function TimeRangeSelector({ value, onChange, asOf }: TimeRangeSelectorProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden">
+      <div className="flex items-center bg-[#f7f7f5] border border-[#e5e5e3] rounded-lg overflow-hidden">
         {RANGES.map((range) => (
           <button
             key={range.value}
@@ -29,8 +29,8 @@ export function TimeRangeSelector({ value, onChange, asOf }: TimeRangeSelectorPr
             className={cn(
               "px-3 py-1.5 text-xs font-medium transition-colors",
               value === range.value
-                ? "bg-[#58a6ff] text-white"
-                : "text-[#8b949e] hover:text-[#e6edf3] hover:bg-[#21262d]"
+                ? "bg-[#32b88d] text-white"
+                : "text-[#626c71] hover:text-[#133c3b] hover:bg-[#eeeeec]"
             )}
           >
             {range.label}
@@ -38,7 +38,7 @@ export function TimeRangeSelector({ value, onChange, asOf }: TimeRangeSelectorPr
         ))}
       </div>
       {asOf && (
-        <span className="text-[10px] text-[#8b949e]">
+        <span className="text-[10px] text-[#8f9a9e]">
           as of {new Date(asOf).toLocaleString()}
         </span>
       )}

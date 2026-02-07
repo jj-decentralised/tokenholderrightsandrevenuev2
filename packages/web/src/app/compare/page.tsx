@@ -13,53 +13,53 @@ export default function ComparePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Protocol Comparison</h1>
-        <p className="text-sm text-[#8b949e] mt-1">Compare revenue, holder economics, and productive scores side by side</p>
+        <p className="text-sm text-[#8f9a9e] mt-1">Compare revenue, holder economics, and productive scores side by side</p>
       </div>
 
       {/* Protocol Selection */}
       <div className="flex items-center gap-2 flex-wrap">
         {COMPARE_PROTOCOLS.map((p) => (
-          <span key={p.name} className="flex items-center gap-2 px-3 py-1.5 bg-[#161b22] border border-[#30363d] rounded-full text-sm">
+          <span key={p.name} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#e5e5e3] rounded-full text-sm">
             {p.name}
-            <span className="text-xs text-[#8b949e]">{p.token}</span>
+            <span className="text-xs text-[#8f9a9e]">{p.token}</span>
           </span>
         ))}
-        <button className="px-3 py-1.5 border border-dashed border-[#30363d] rounded-full text-sm text-[#8b949e] hover:text-[#e6edf3] hover:border-[#8b949e]">
+        <button className="px-3 py-1.5 border border-dashed border-[#e5e5e3] rounded-full text-sm text-[#8f9a9e] hover:text-[#133c3b] hover:border-[#8f9a9e]">
           + Add Protocol
         </button>
       </div>
 
       {/* Comparison Table */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+      <div className="bg-white border border-[#e5e5e3] rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#30363d]">
-                <th className="px-4 py-3 text-xs font-medium text-[#8b949e] text-left w-48">Metric</th>
+              <tr className="border-b border-[#e5e5e3]">
+                <th className="px-4 py-3 text-xs font-medium text-[#8f9a9e] text-left w-48">Metric</th>
                 {COMPARE_PROTOCOLS.map((p) => (
                   <th key={p.name} className="px-4 py-3 text-sm font-medium text-center min-w-[160px]">
                     <div>{p.name}</div>
-                    <div className="text-xs text-[#8b949e] font-normal">{p.token}</div>
+                    <div className="text-xs text-[#8f9a9e] font-normal">{p.token}</div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {[
-                { label: "Category", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-xs bg-[#21262d] px-1.5 py-0.5 rounded capitalize">{p.category}</span> },
+                { label: "Category", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-xs bg-[#f7f7f5] px-1.5 py-0.5 rounded capitalize">{p.category}</span> },
                 { label: "Total Fees (30D)", render: (p: typeof COMPARE_PROTOCOLS[0]) => formatUSD(p.fees_30d, true) },
-                { label: "Protocol Revenue (30D)", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-[#58a6ff]">{formatUSD(p.revenue_30d, true)}</span> },
-                { label: "Holder Revenue (30D)", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-[#3fb950]">{formatUSD(p.holder_revenue_30d, true)}</span> },
-                { label: "Holder Revenue %", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className={p.holder_pct > 0 ? "text-[#3fb950]" : "text-[#8b949e]"}>{p.holder_pct.toFixed(1)}%</span> },
+                { label: "Protocol Revenue (30D)", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-[#32b88d]">{formatUSD(p.revenue_30d, true)}</span> },
+                { label: "Holder Revenue (30D)", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-[#32b88d]">{formatUSD(p.holder_revenue_30d, true)}</span> },
+                { label: "Holder Revenue %", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className={p.holder_pct > 0 ? "text-[#32b88d]" : "text-[#8f9a9e]"}>{p.holder_pct.toFixed(1)}%</span> },
                 { label: "Market Cap", render: (p: typeof COMPARE_PROTOCOLS[0]) => formatUSD(p.market_cap, true) },
                 { label: "Real P/E", render: (p: typeof COMPARE_PROTOCOLS[0]) => formatRatio(p.real_pe) },
-                { label: "Holder Revenue Yield", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-[#3fb950]">{p.yield.toFixed(1)}%</span> },
+                { label: "Holder Revenue Yield", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className="text-[#32b88d]">{p.yield.toFixed(1)}%</span> },
                 { label: "Total Holders", render: (p: typeof COMPARE_PROTOCOLS[0]) => formatNumber(p.holders, true) },
-                { label: "Holder Growth (30D)", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className={p.growth_30d > 0 ? "text-[#3fb950]" : "text-[#f85149]"}>+{p.growth_30d.toFixed(1)}%</span> },
+                { label: "Holder Growth (30D)", render: (p: typeof COMPARE_PROTOCOLS[0]) => <span className={p.growth_30d > 0 ? "text-[#32b88d]" : "text-[#c0152f]"}>+{p.growth_30d.toFixed(1)}%</span> },
                 { label: "Productive Score", render: (p: typeof COMPARE_PROTOCOLS[0]) => <ProductiveScore score={p.score} /> },
               ].map((row) => (
-                <tr key={row.label} className="border-b border-[#21262d]">
-                  <td className="px-4 py-2.5 text-sm text-[#8b949e]">{row.label}</td>
+                <tr key={row.label} className="border-b border-[#eeeeec]">
+                  <td className="px-4 py-2.5 text-sm text-[#8f9a9e]">{row.label}</td>
                   {COMPARE_PROTOCOLS.map((p) => (
                     <td key={p.name} className="px-4 py-2.5 text-sm text-center tabular-nums">
                       {row.render(p)}
