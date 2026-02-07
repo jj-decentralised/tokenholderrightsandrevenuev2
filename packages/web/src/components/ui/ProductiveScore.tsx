@@ -1,29 +1,16 @@
-import { cn } from "@/lib/api";
-
 interface ProductiveScoreProps {
   score: number | null;
   size?: "sm" | "md" | "lg";
 }
 
 export function ProductiveScore({ score, size = "md" }: ProductiveScoreProps) {
-  if (score == null) return <span className="text-[#8f9a9e]">&mdash;</span>;
+  if (score == null) return <span className="text-[#888]">&mdash;</span>;
 
-  const getColor = (s: number) => {
-    if (s >= 8) return "text-[#32b88d]";
-    if (s >= 6) return "text-[#2563eb]";
-    if (s >= 4) return "text-[#a84b2f]";
-    if (s >= 2) return "text-[#c0152f]";
-    return "text-[#8f9a9e]";
-  };
-
-  const sizeClasses = {
-    sm: "text-sm",
-    md: "text-base font-semibold",
-    lg: "text-xl font-bold",
-  };
+  const sizeClass = size === "sm" ? "text-xs" : size === "lg" ? "text-xl font-bold" : "text-sm font-semibold";
+  const color = score >= 7 ? "text-[#111]" : score >= 4 ? "text-[#444]" : "text-[#c0152f]";
 
   return (
-    <span className={cn("tabular-nums", getColor(score), sizeClasses[size])}>
+    <span className={`tabular-nums ${sizeClass} ${color}`}>
       {score.toFixed(1)}
     </span>
   );

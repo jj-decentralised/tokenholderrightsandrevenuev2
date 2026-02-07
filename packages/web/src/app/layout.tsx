@@ -5,7 +5,6 @@ export const metadata: Metadata = {
   title: "Crypto Terminal | Revenue, Valuation & Holder Intelligence",
   description:
     "Institutional-grade analytics connecting protocol revenue to token holder economics. Real P/E ratios, holder revenue yield, and productive token scores.",
-  keywords: "crypto analytics, protocol revenue, token holder revenue, DeFi analytics, real P/E ratio",
 };
 
 export default function RootLayout({
@@ -13,43 +12,67 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#fcfcf9] text-[#133c3b] antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-screen bg-white text-[#111] font-serif antialiased">
         <div className="flex flex-col min-h-screen">
-          <header className="sticky top-0 z-50 h-14 border-b border-[#e5e5e3] bg-white/95 backdrop-blur-sm">
-            <nav className="flex items-center justify-between h-full px-6 max-w-[1280px] mx-auto">
-              <div className="flex items-center gap-10">
-                <a href="/" className="text-lg font-bold tracking-tight text-[#133c3b]">
-                  <span className="text-[#32b88d]">Crypto</span>Terminal
-                </a>
-                <div className="hidden md:flex items-center gap-1">
-                  <NavLink href="/">Overview</NavLink>
-                  <NavLink href="/revenue">Revenue Atlas</NavLink>
-                  <NavLink href="/compare">Compare</NavLink>
-                  <NavLink href="/holders">Holders</NavLink>
-                  <NavLink href="/rights">Rights Registry</NavLink>
-                  <NavLink href="/methodology">Methodology</NavLink>
-                </div>
+          {/* Masthead */}
+          <header className="pt-4 pb-0 px-6">
+            <div className="max-w-[1280px] mx-auto">
+              <div className="text-center mb-3">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-[0.15em] uppercase">
+                  The Crypto Terminal
+                </h1>
+                <p className="text-xs text-[#888] mt-1 tracking-wide">
+                  Revenue, Valuation &amp; Holder Intelligence
+                </p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:block relative">
-                  <input
-                    type="text"
-                    placeholder="Search protocols..."
-                    className="w-56 h-8 pl-3 pr-8 text-sm bg-[#f7f7f5] border border-[#e5e5e3] rounded-lg text-[#133c3b] placeholder:text-[#8f9a9e] focus:outline-none focus:border-[#32b88d] focus:ring-1 focus:ring-[#32b88d]/20 transition-colors"
-                  />
-                </div>
+              <hr className="rule-heavy" />
+              <nav className="flex items-center justify-center gap-0 py-2 text-sm flex-wrap">
+                <NavLink href="/">Overview</NavLink>
+                <Sep />
+                <NavLink href="/screener">Screener</NavLink>
+                <Sep />
+                <NavLink href="/revenue">Revenue Atlas</NavLink>
+                <Sep />
+                <NavLink href="/holders">Holders</NavLink>
+                <Sep />
+                <NavLink href="/rights">Rights Registry</NavLink>
+                <Sep />
+                <NavLink href="/methodology">Methodology</NavLink>
+              </nav>
+              <hr className="rule" />
+              <div className="flex items-center justify-between py-1.5 text-xs text-[#888]">
+                <span>{today}</span>
+                <span>Data: DefiLlama, CoinGecko, Codex</span>
               </div>
-            </nav>
+              <hr className="rule-thin" />
+            </div>
           </header>
+
           <main className="flex-1 max-w-[1280px] mx-auto w-full px-6 py-8">
             {children}
           </main>
-          <footer className="border-t border-[#e5e5e3] py-5 px-6">
-            <div className="max-w-[1280px] mx-auto flex items-center justify-between text-xs text-[#8f9a9e]">
-              <span>Crypto Terminal v1.0 &middot; Data from DefiLlama, CoinGecko, Codex, Allium</span>
-              <span>Powered by decentralised.co</span>
+
+          <footer className="mt-12 border-t border-[#d0d0d0] py-4 px-6">
+            <div className="max-w-[1280px] mx-auto flex items-center justify-between text-xs text-[#888]">
+              <span className="italic">Powered by decentralised.co</span>
+              <span>Data sources: DefiLlama &middot; CoinGecko &middot; Codex &middot; Allium</span>
             </div>
           </footer>
         </div>
@@ -62,9 +85,13 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <a
       href={href}
-      className="px-3 py-1.5 text-sm text-[#626c71] hover:text-[#133c3b] rounded-lg hover:bg-[#f7f7f5] transition-colors"
+      className="px-3 py-1 text-[#444] hover:text-[#111] hover:underline underline-offset-4 transition-colors"
     >
       {children}
     </a>
   );
+}
+
+function Sep() {
+  return <span className="text-[#d0d0d0]">|</span>;
 }

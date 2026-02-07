@@ -3,23 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #32b88d;
-  --color-primary-hover: #1d7464;
-
-  --color-bg: #fcfcf9;
-  --color-surface: #fffffe;
-  --color-elevated: #f7f7f5;
-  --color-border: #e5e5e3;
-  --color-border-light: #eeeeec;
-
-  --color-text: #133c3b;
-  --color-text-muted: #626c71;
-  --color-text-light: #8f9a9e;
-
-  --color-success: #32b88d;
-  --color-error: #c0152f;
-  --color-warning: #a84b2f;
-  --color-accent: #2563eb;
+  --color-bg: #ffffff;
+  --color-muted: #f8f7f4;
+  --color-text: #111111;
+  --color-secondary: #444444;
+  --color-caption: #888888;
+  --color-border: #d0d0d0;
+  --color-rule: #e8e8e8;
+  --color-blue: #0274B6;
+  --color-green: #1a7a2e;
+  --color-red: #c0152f;
 }
 
 * {
@@ -35,18 +28,19 @@ html {
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums lining-nums;
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 
+/* Minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -55,19 +49,33 @@ body {
   background: var(--color-border);
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-light);
-}
 
+/* Sticky table headers */
 .data-table th {
   position: sticky;
   top: 0;
-  background: var(--color-surface);
+  background: var(--color-bg);
   z-index: 10;
 }
 
+/* Horizontal rule utility */
+.rule {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.rule-thin {
+  border: 0;
+  border-top: 1px solid var(--color-rule);
+}
+
+.rule-heavy {
+  border: 0;
+  border-top: 2px solid var(--color-text);
+}
+
 @layer utilities {
-  .text-positive { color: var(--color-success); }
-  .text-negative { color: var(--color-error); }
-  .text-accent { color: var(--color-primary); }
+  .text-positive { color: var(--color-green); }
+  .text-negative { color: var(--color-red); }
+  .text-link { color: var(--color-blue); }
 }

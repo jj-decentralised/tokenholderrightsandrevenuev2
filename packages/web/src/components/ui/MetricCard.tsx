@@ -1,34 +1,25 @@
-import { cn, formatPercent } from "@/lib/api";
-
 interface MetricCardProps {
   title: string;
   value: string;
   change?: number | null;
   subtitle?: string;
   source?: string;
-  className?: string;
 }
 
-export function MetricCard({ title, value, change, subtitle, source, className }: MetricCardProps) {
+export function MetricCard({ title, value, change, subtitle, source }: MetricCardProps) {
   return (
-    <div className={cn("bg-white border border-[#e5e5e3] rounded-lg p-4", className)}>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-[#8f9a9e] uppercase tracking-wide font-medium">{title}</span>
-        {source && (
-          <span className="text-[10px] text-[#8f9a9e] bg-[#f7f7f5] px-1.5 py-0.5 rounded">
-            {source}
-          </span>
-        )}
-      </div>
-      <div className="text-2xl font-semibold tabular-nums text-[#133c3b]">{value}</div>
-      <div className="flex items-center gap-2 mt-1">
+    <div className="py-3 border-b border-[#e8e8e8]">
+      <p className="text-xs text-[#888] uppercase tracking-wide">{title}</p>
+      <p className="text-2xl font-bold tabular-nums mt-0.5">{value}</p>
+      <div className="flex items-center gap-2 mt-0.5">
         {change != null && (
-          <span className={cn("text-sm tabular-nums font-medium", change >= 0 ? "text-[#32b88d]" : "text-[#c0152f]")}>
-            {formatPercent(change)}
+          <span className={`text-sm tabular-nums font-medium ${change >= 0 ? "text-positive" : "text-negative"}`}>
+            {change >= 0 ? "+" : ""}{change.toFixed(2)}%
           </span>
         )}
-        {subtitle && <span className="text-xs text-[#8f9a9e]">{subtitle}</span>}
+        {subtitle && <span className="text-xs text-[#888]">{subtitle}</span>}
       </div>
+      {source && <p className="text-xs text-[#888] italic mt-0.5">{source}</p>}
     </div>
   );
 }

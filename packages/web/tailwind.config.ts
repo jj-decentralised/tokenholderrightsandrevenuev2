@@ -5,44 +5,22 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        serif: ["Georgia", "Times New Roman", "serif"],
+        serif: ["'EB Garamond'", "Georgia", "'Times New Roman'", "serif"],
         mono: ["JetBrains Mono", "Fira Code", "ui-monospace", "monospace"],
       },
       colors: {
-        brand: {
-          DEFAULT: "#32b88d",
-          hover: "#1d7464",
-          light: "#e8f7f1",
-          50: "#f0fdf7",
-          600: "#32b88d",
-          700: "#1d7464",
-          800: "#133c3b",
+        wsj: {
+          bg: "#ffffff",
+          muted: "#f8f7f4",
+          text: "#111111",
+          secondary: "#444444",
+          caption: "#888888",
+          border: "#d0d0d0",
+          rule: "#e8e8e8",
+          blue: "#0274B6",
+          green: "#1a7a2e",
+          red: "#c0152f",
         },
-        surface: {
-          bg: "#fcfcf9",
-          card: "#fffffe",
-          elevated: "#f7f7f5",
-          hover: "#f2f2f0",
-        },
-        border: {
-          DEFAULT: "#e5e5e3",
-          light: "#eeeeec",
-        },
-        content: {
-          DEFAULT: "#133c3b",
-          muted: "#626c71",
-          light: "#8f9a9e",
-        },
-        status: {
-          success: "#32b88d",
-          error: "#c0152f",
-          warning: "#a84b2f",
-        },
-      },
-      borderRadius: {
-        sm: "6px",
-        md: "10px",
-        lg: "12px",
       },
     },
   },
